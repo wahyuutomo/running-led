@@ -1,537 +1,22 @@
 #include "LedControl.h"
 #include "string.h"
+#include "LetterHandler.h"
+
 #define NUMBER_OF_DISPLAY 4
+#define NUMBER_OF_COLUMN 8
+#define NUMBER_OF_ROW 8
+
+#define DELAY_TIME 100
+
+// SPI PIN
 #define DIN 11
 #define SCLK 13
 #define SS 10
 
-LedControl lc = LedControl(
-    DIN,
-    SCLK,
-    SS,
-    NUMBER_OF_DISPLAY);
-unsigned long delaytime=100;
-byte getAlphabetIndex(char c);
-const byte IMAGES[][8] = {
-{
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100110,
-  B01111110,
-  B01100110,
-  B01100110,
-  B01100110
-},{
-  B00000000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01111100
-},{
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01100110,
-  B00111100
-},{
-  B00000000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01111100
-},{
-  B00000000,
-  B01111110,
-  B01100000,
-  B01100000,
-  B01111100,
-  B01100000,
-  B01100000,
-  B01111110
-},{
-  B00000000,
-  B01111110,
-  B01100000,
-  B01100000,
-  B01111100,
-  B01100000,
-  B01100000,
-  B01100000
-},{
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100000,
-  B01100000,
-  B01101110,
-  B01100110,
-  B00111100
-},{
-  B00000000,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01111110,
-  B01100110,
-  B01100110,
-  B01100110
-},{
-  B00000000,
-  B00111100,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00111100
-},{
-  B00000000,
-  B00011110,
-  B00001100,
-  B00001100,
-  B00001100,
-  B01101100,
-  B01101100,
-  B00111000
-},{
-  B00000000,
-  B01100110,
-  B01101100,
-  B01111000,
-  B01110000,
-  B01111000,
-  B01101100,
-  B01100110
-},{
-  B00000000,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01111110
-},{
-  B00000000,
-  B01100011,
-  B01110111,
-  B01111111,
-  B01101011,
-  B01100011,
-  B01100011,
-  B01100011
-},{
-  B00000000,
-  B01100011,
-  B01110011,
-  B01111011,
-  B01101111,
-  B01100111,
-  B01100011,
-  B01100011
-},{
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B00111100
-},{
-  B00000000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01111100,
-  B01100000,
-  B01100000
-},{
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01101110,
-  B00111100,
-  B00000110
-},{
-  B00000000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01111100,
-  B01111000,
-  B01101100,
-  B01100110
-},{
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100000,
-  B00111100,
-  B00000110,
-  B01100110,
-  B00111100
-},{
-  B00000000,
-  B01111110,
-  B01011010,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000
-},{
-  B00000000,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B00111110
-},{
-  B00000000,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B00111100,
-  B00011000
-},{
-  B00000000,
-  B01100011,
-  B01100011,
-  B01100011,
-  B01101011,
-  B01111111,
-  B01110111,
-  B01100011
-},{
-  B00000000,
-  B01100011,
-  B01100011,
-  B00110110,
-  B00011100,
-  B00110110,
-  B01100011,
-  B01100011
-},{
-  B00000000,
-  B01100110,
-  B01100110,
-  B01100110,
-  B00111100,
-  B00011000,
-  B00011000,
-  B00011000
-},{
-  B00000000,
-  B01111110,
-  B00000110,
-  B00001100,
-  B00011000,
-  B00110000,
-  B01100000,
-  B01111110
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111100,
-  B00000110,
-  B00111110,
-  B01100110,
-  B00111110
-},{
-  B00000000,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01111100
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100000,
-  B01100110,
-  B00111100
-},{
-  B00000000,
-  B00000110,
-  B00000110,
-  B00000110,
-  B00111110,
-  B01100110,
-  B01100110,
-  B00111110
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111100,
-  B01100110,
-  B01111110,
-  B01100000,
-  B00111100
-},{
-  B00000000,
-  B00011100,
-  B00110110,
-  B00110000,
-  B00110000,
-  B01111100,
-  B00110000,
-  B00110000
-},{
-  B00000000,
-  B00000000,
-  B00111110,
-  B01100110,
-  B01100110,
-  B00111110,
-  B00000110,
-  B00111100
-},{
-  B00000000,
-  B01100000,
-  B01100000,
-  B01100000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01100110
-},{
-  B00000000,
-  B00000000,
-  B00011000,
-  B00000000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00111100
-},{
-  B00000000,
-  B00001100,
-  B00000000,
-  B00001100,
-  B00001100,
-  B01101100,
-  B01101100,
-  B00111000
-},{
-  B00000000,
-  B01100000,
-  B01100000,
-  B01100110,
-  B01101100,
-  B01111000,
-  B01101100,
-  B01100110
-},{
-  B00000000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B00011000
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01100011,
-  B01110111,
-  B01111111,
-  B01101011,
-  B01101011
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01111100,
-  B01111110,
-  B01100110,
-  B01100110,
-  B01100110
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111100,
-  B01100110,
-  B01100110,
-  B01100110,
-  B00111100
-},{
-  B00000000,
-  B00000000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01111100,
-  B01100000,
-  B01100000
-},{
-  B00000000,
-  B00000000,
-  B00111100,
-  B01101100,
-  B01101100,
-  B00111100,
-  B00001101,
-  B00001111
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01111100,
-  B01100110,
-  B01100110,
-  B01100000,
-  B01100000
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111110,
-  B01000000,
-  B00111100,
-  B00000010,
-  B01111100
-},{
-  B00000000,
-  B00000000,
-  B00011000,
-  B00011000,
-  B01111110,
-  B00011000,
-  B00011000,
-  B00011000
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01100110,
-  B01100110,
-  B01100110,
-  B01100110,
-  B00111110
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B01100110,
-  B01100110,
-  B00111100,
-  B00011000
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01100011,
-  B01101011,
-  B01101011,
-  B01101011,
-  B00111110
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01100110,
-  B00111100,
-  B00011000,
-  B00111100,
-  B01100110
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B01100110,
-  B01100110,
-  B00111110,
-  B00000110,
-  B00111100
-},{
-  B00000000,
-  B00000000,
-  B00000000,
-  B00111100,
-  B00001100,
-  B00011000,
-  B00110000,
-  B00111100
-}};
-const int IMAGES_LEN = sizeof(IMAGES)/8;
+// Buffer for display 4x8x8, here we define it row wise
+byte buffer[NUMBER_OF_DISPLAY][NUMBER_OF_ROW] = {{}};
 
-void setup() {
-  /*
-   The MAX72XX is in power-saving mode on startup,
-   we have to do a wakeup call
-   */
-  lc.shutdown(0,false);
-  lc.shutdown(1,false);
-  lc.shutdown(2,false);
-  lc.shutdown(3,false);
-  /* Set the brightness to a medium values */
-  lc.setIntensity(0,4);
-  lc.setIntensity(1,4);
-  lc.setIntensity(2,4);
-  lc.setIntensity(3,4);
-  /* and clear the display */
-  lc.clearDisplay(0);
-  lc.clearDisplay(1);
-  lc.clearDisplay(2);
-  lc.clearDisplay(3);
-
-  lc.setColumn(1,0,0b11111111);
-
-  Serial.begin(9600);
-
-//  lc.setRow(0,0,0b00110011);
-//  lc.setRow(0,1,0b11111111);
-
-  for (int i = 0; i<8; i++){
-//    lc.setRow(1,i,IMAGES[0][i]);  
-    Serial.print("IMAGES[0][");
-    Serial.print(i);
-    Serial.print("]: ");
-    Serial.println(IMAGES[0][i]);
-  }  
-  
-}
-
-byte buffer[4][8] = {{}};
-
+// Function to shift buffer vertical
 void shiftBufferColumn(){
   for(int j = 3; j>=0; j--){
     for(int k = 0; k<7; k++){
@@ -545,46 +30,8 @@ void shiftBufferColumn(){
   }
 }
 
-
-byte getAlphabetIndex(char c){
-  switch(c){
-    case 'A': return 0; break;
-    case 'B': return 1; break;
-    case 'C': return 2; break;
-    case 'D': return 3; break;
-    case 'E': return 4; break;
-    case 'F': return 5; break;
-    case 'G': return 6; break;
-    case 'H': return 7; break;
-    case 'I': return 8; break;
-    case 'J': return 9; break;
-    case 'K': return 10; break;
-    case 'L': return 11; break;
-    case 'M': return 12; break;
-    case 'N': return 13; break;
-    case 'O': return 14; break;
-    case 'P': return 15; break;
-    case 'Q': return 16; break;
-    case 'R': return 17; break;
-    case 'S': return 18; break;
-    case 'T': return 19; break;
-    case 'U': return 20; break;
-    case 'V': return 21; break;
-    case 'W': return 22; break;
-    case 'X': return 23; break;
-    case 'Y': return 24; break;
-    case 'Z': return 25; break;
-    case ' ': return 26; break;
-    default: return 26; break;
-    }
-}
-
-int n = 0;
-int letter = 0;
-int letter_idx = 0;
-char text[] = "HELLO WORLD ";
-
-void shiftBuffer(int n, int letter){
+// Function to shift buffer horizontal
+void shiftBuffer(int n, int letter, char* text){
   for(int j = 3; j>0; j--){
     for(int k = 0; k<8; k++){
       if(j>0){
@@ -593,30 +40,67 @@ void shiftBuffer(int n, int letter){
     }
   }
   for(int k = 0; k<8; k++){
-    //byte mask = myWord[letter][k]<<n;
-    byte mask = IMAGES[getAlphabetIndex(text[letter])][k]<<n;
+    byte mask = IMAGES[LetterHandler::getAlphabetIndex(text[letter])][k]<<n;
     buffer[0][k] = buffer[0][k] <<1 | mask>>7;
   }
 
 }
 
+// MAX72XX LED Control
+LedControl lc = LedControl(
+    DIN,
+    SCLK,
+    SS,
+    NUMBER_OF_DISPLAY);
+
+
+// shows index for letter parts, a letter is sliced into 8 parts
+int part = 0;
+
+// shows index for letter in the text
+int letter_idx = 0;
+
+// text that is shown, harcoded for now and only support capital letter
+char text[] = "JEZZ ";
+
+void setup() {
+  
+  for (int display = 0; display < NUMBER_OF_DISPLAY; display++){
+    /*
+    The MAX72XX is in power-saving mode on startup,
+    we have to do a wakeup call
+    */
+    lc.shutdown(display, false);
+
+    /* Set the brightness to a medium values */
+    lc.setIntensity(display,4);
+
+    /* and clear the display */
+    lc.clearDisplay(display);
+
+  }
+}
+
+
+
 void loop() {
   
-  for(int i = 0; i<8; i++){
-    lc.setRow(0,i,buffer[0][i]);
-    lc.setRow(1,i,buffer[1][i]);
-    lc.setRow(2,i,buffer[2][i]);
-    lc.setRow(3,i,buffer[3][i]);
+  // Display the buffer
+  for(int row = 0; row<NUMBER_OF_ROW; row++){
+    for(int display = 0; display<NUMBER_OF_DISPLAY; display++){
+      lc.setRow(display,row,buffer[display][row]);
+    }
   }
 
-  shiftBuffer(n, letter_idx);
-  n = n+1;
-  if (n == 8){
-    n = 0;
+  // Shift buffer to the left
+  shiftBuffer(part, letter_idx, text);
+  part = part+1;
+  if (part == LETTER_SLICES){
+    part = 0;
     letter_idx = letter_idx + 1;
     if(letter_idx == strlen(text)) letter_idx = 0;  
   }
   
-  delay(50);
+  delay(DELAY_TIME);
   
 }
