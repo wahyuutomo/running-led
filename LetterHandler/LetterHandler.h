@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+// Letter IMAGES from https://xantorohara.github.io/led-matrix-editor/
 const byte IMAGES[][8] = 
 {
 	{
